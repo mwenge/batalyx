@@ -3647,6 +3647,7 @@ s4198
         RTS 
 
 a41AF   .BYTE $27
+;41B0
         JSR s4143
         JSR s416A
         JSR s574D
@@ -5251,7 +5252,7 @@ f4E8F   STA a03
         STA $D40E    ;Voice 3: Frequency Control - Low-Byte
         LDA #$02
 a4ECF   =*+$02
-        STA $00D9
+        STA @w$00D9
 ;-------------------------------
 ; s4ED0
 ;-------------------------------
@@ -5550,10 +5551,10 @@ b5165   LDA f48D2,X
 b5170   JMP j4246
 
         ORA $F4AD
-        SBC $00FE,X
+        SBC @w$00FE,X
         .BYTE $02    ;JAM 
         BRK #$FE
-        INC $00FF,X
+        INC @w$00FF,X
         ORA (p00,X)
         .BYTE $FF,$C0,$C1 ;ISC $C1C0,X
         .BYTE $C2,$C3 ;NOP #$C3
@@ -11390,7 +11391,7 @@ b887E   LDA f86CC,X
         RTS 
 
         LDA #$FF
-        BIT $00A9
+        BIT @w$00A9
         STA a3F
         LDA #$00
         STA $0128
@@ -12025,7 +12026,7 @@ s8D37
 ; s8D3A
 ;-------------------------------
 s8D3A   =*+$01
-        BIT $00A2
+        BIT @w$00A2
         LDY fC1,X
         BNE b8D48
         LDY fC2,X
@@ -12300,7 +12301,7 @@ b8F32   STA $0127
         STA $012B
         STX $012C
         LDA #$40
-        BIT $00A9
+        BIT @w$00A9
         BIT a80A9
         STA $0127
         JSR s8301
