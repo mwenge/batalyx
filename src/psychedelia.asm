@@ -122,9 +122,9 @@ a78E2   .BYTE $01
 s78E3   
         LDY a78E0
         LDX a78E1
-        LDA $0340,X
+        LDA screenLinesLoPtrArray,X
         STA a23
-        LDA $0360,X
+        LDA screenLinesHiPtrArray,X
         CLC 
         ADC #$D4
         STA a24
@@ -203,9 +203,9 @@ a797D   .BYTE $7F
 s797E   
         LDX a79BF
         LDY a79C0
-        LDA $0340,X
+        LDA screenLinesLoPtrArray,X
         STA a25
-        LDA $0360,X
+        LDA screenLinesHiPtrArray,X
         CLC 
         ADC #$D4
         STA a26

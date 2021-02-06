@@ -66,18 +66,18 @@ aA075   .BYTE $00
 sA076   
         LDY aA072
         LDX aA073
-        LDA $0340,X
-        STA a02
-        LDA $0360,X
-        STA a03
+        LDA screenLinesLoPtrArray,X
+        STA screenLinesLoPtr
+        LDA screenLinesHiPtrArray,X
+        STA screenLinesHiPtr
         LDA aA075
-        STA (p02),Y
-        LDA a03
+        STA (screenLinesLoPtr),Y
+        LDA screenLinesHiPtr
         CLC 
         ADC #$D4
-        STA a03
+        STA screenLinesHiPtr
         LDA aA074
-        STA (p02),Y
+        STA (screenLinesLoPtr),Y
         RTS 
 
 aA098   .BYTE $00
@@ -723,11 +723,11 @@ bA676   SEC
         STA aA66B
         LDY aA66A
         LDX aA66B
-        LDA $0340,X
-        STA a02
-        LDA $0360,X
-        STA a03
-        LDA (p02),Y
+        LDA screenLinesLoPtrArray,X
+        STA screenLinesLoPtr
+        LDA screenLinesHiPtrArray,X
+        STA screenLinesHiPtr
+        LDA (screenLinesLoPtr),Y
         CMP #$20
         BEQ bA6D4
         SEC 
@@ -999,7 +999,7 @@ bA857   JSR sA764
         RTS 
 
         .BYTE $07,$05 ;SLO a05
-        .BYTE $04,$03 ;NOP a03
+        .BYTE $04,$03 ;NOP screenLinesHiPtr
 ;-------------------------------
 ; sA879
 ;-------------------------------

@@ -14,8 +14,8 @@ fE7 = $E7
 ; **** ZP ABSOLUTE ADRESSES **** 
 ;
 a01 = $01
-a02 = $02
-a03 = $03
+screenLinesLoPtr = $02
+screenLinesHiPtr = $03
 a04 = $04
 a05 = $05
 a06 = $06
@@ -93,7 +93,6 @@ aFE = $FE
 ;
 p00 = $00
 p01 = $01
-p02 = $02
 p04 = $04
 p06 = $06
 p11 = $11
@@ -139,14 +138,16 @@ p00C1 = $00C1
 
 SCREEN_RAM = $0400
 COLOR_RAM = $D800
+screenLinesLoPtrArray = $0340
+screenLinesHiPtrArray = $0360
 
 * = $0801
 ;------------------------------------------------------------------
-; SYS 16816 ($4000)
-; This launches the program from address $4000, i.e. MainControlLoop.
+; SYS 16816 ($41B0)
+; This launches the program from address $41B0, i.e. LaunchBatalyx.
 ;------------------------------------------------------------------
 ; $9E = SYS
-; $31,$36,$33,$38,$34,$00 = 16384 ($4000 in hex)
+; $31,$36,$38,$31,$36,$00 = 16816 ($41B0 in hex)
         .BYTE $0C,$08,$0A,$00,$9E,$31,$36,$38,$31,$36,$00
 
 * = $0810
@@ -360,34 +361,35 @@ j413E   JMP j578A
 a4141   .BYTE $00
 a4142   .BYTE $01
 ;-------------------------------
-; s4143
+; InitializeScreenLinePtrArray
 ;-------------------------------
-s4143   
+InitializeScreenLinePtrArray   
         LDA #>SCREEN_RAM + $0000
-        STA a03
+        STA screenLinesHiPtr
         LDA #<SCREEN_RAM + $0000
-        STA a02
+        STA screenLinesLoPtr
+
         LDX #$00
-b414D   LDA a02
-        STA $0340,X
-        LDA a03
-        STA $0360,X
-        LDA a02
+b414D   LDA screenLinesLoPtr
+        STA screenLinesLoPtrArray,X
+        LDA screenLinesHiPtr
+        STA screenLinesHiPtrArray,X
+        LDA screenLinesLoPtr
         CLC 
         ADC #$28
-        STA a02
-        LDA a03
+        STA screenLinesLoPtr
+        LDA screenLinesHiPtr
         ADC #$00
-        STA a03
+        STA screenLinesHiPtr
         INX 
         CPX #$1A
         BNE b414D
         RTS 
 
 ;-------------------------------
-; s416A
+; ClearScreen
 ;-------------------------------
-s416A   
+ClearScreen   
         LDX #$00
 b416C   LDA #$20
         STA SCREEN_RAM + $0000,X
@@ -406,10 +408,10 @@ b416C   LDA #$20
 s4183   
         LDX a05
         LDY a04
-        LDA $0340,X
-        STA a02
-        LDA $0360,X
-        STA a03
+        LDA screenLinesLoPtrArray,X
+        STA screenLinesLoPtr
+        LDA screenLinesHiPtrArray,X
+        STA screenLinesHiPtr
         RTS 
 
 ;-------------------------------
@@ -417,7 +419,7 @@ s4183
 ;-------------------------------
 s4192   
         JSR s4183
-        LDA (p02),Y
+        LDA (screenLinesLoPtr),Y
         RTS 
 
 ;-------------------------------
@@ -426,53 +428,62 @@ s4192
 s4198   
         JSR s4183
         LDA a07
-        STA (p02),Y
-        LDA a03
+        STA (screenLinesLoPtr),Y
+        LDA screenLinesHiPtr
         PHA 
         CLC 
         ADC #$D4
-        STA a03
+        STA screenLinesHiPtr
         LDA a06
-        STA (p02),Y
+        STA (screenLinesLoPtr),Y
         PLA 
-        STA a03
+        STA screenLinesHiPtr
         RTS 
 
 a41AF   .BYTE $27
-;41B0
-        JSR s4143
-        JSR s416A
-        JSR s574D
+;-------------------------------
+; LaunchBatalyx $41B0
+;-------------------------------
+LaunchBatalyx
+        JSR InitializeScreenLinePtrArray
+        JSR ClearScreen
+        JSR DrawSomethingOnSecondLastLine
+
         LDA $D016    ;VIC Control Register 2
         AND #$F0
         STA $D016    ;VIC Control Register 2
-        JSR s4B1B
-        JSR s41EC
+
+        JSR InitializeVariablesInterruptsDrawRainbow
+        JSR SetUpInterrupts
+
         LDA #$18
         STA $D018    ;VIC Memory Control Register
+
         LDA #$00
         STA $D020    ;Border Color
         STA $D021    ;Background Color 0
         STA $D400    ;Voice 1: Frequency Control - Low-Byte
+
         LDA #$04
         STA $D407    ;Voice 2: Frequency Control - Low-Byte
         LDA #$08
         STA $D40E    ;Voice 3: Frequency Control - Low-Byte
+
         LDA #$02
         STA selectedSubGame
-        JSR s4BC9
+        JSR UpdateGameIconsPanel
         JMP TitleScreenLoop
 
 ;-------------------------------
-; s41EC
+; SetUpInterrupts
 ;-------------------------------
-s41EC   
+SetUpInterrupts   
         SEI 
         LDA #$7F
         STA $DC0D    ;CIA1: CIA Interrupt Control Register
-        LDA #<p422D
+        LDA #<TitleScreenInterruptHandler
         STA $0314    ;IRQ
-        LDA #>p422D
+        LDA #>TitleScreenInterruptHandler
         STA $0315    ;IRQ
         LDA #$00
         STA a0A
@@ -501,11 +512,16 @@ b4224   STA $D012    ;Raster Position
         STA $D019    ;VIC Interrupt Request Register (IRR)
         RTS 
 
-p422D   LDA $D019    ;VIC Interrupt Request Register (IRR)
+;-------------------------------
+; TitleScreenInterruptHandler
+;-------------------------------
+TitleScreenInterruptHandler
+        LDA $D019    ;VIC Interrupt Request Register (IRR)
         AND #$01
         BNE b4237
         JMP $EA31
 
+        ;Check for keyboard input
 b4237   LDX a0A
         LDA f410A,X
         STA a08
@@ -541,7 +557,7 @@ LaunchSubGame
         STA a449E
         LDA subGameJumpMapHiPtr,X
         STA a449F
-        JSR s4BC9
+        JSR UpdateGameIconsPanel
         JMP (a449E)
 
 ; $AB00 - LaunchHallucinOBomblets
@@ -1339,7 +1355,7 @@ bC254   LDA #$06
 
 bC260   LDA #$07
         STA selectedSubGame
-        JSR s4B1B
+        JSR InitializeVariablesInterruptsDrawRainbow
         JMP s413B
 
 aC26B   .BYTE $00

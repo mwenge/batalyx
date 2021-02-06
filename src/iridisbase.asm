@@ -1034,9 +1034,9 @@ s4AFC
 
         STA a6003
 ;-------------------------------
-; s4B1B
+; InitializeVariablesInterruptsDrawRainbow
 ;-------------------------------
-s4B1B   
+InitializeVariablesInterruptsDrawRainbow   
         LDA #$36
         STA a01
         LDA #$00
@@ -1051,23 +1051,27 @@ s4B1B
         STA aA003
         STA aAB03
         STA a4CE8
+
         LDX #$0A
         LDA #$20
 b4B46   STA SCREEN_RAM + $037C,X
         STA SCREEN_RAM + $03A4,X
         DEX 
         BNE b4B46
+
         LDA #$02
         STA a0D
+
         SEI 
-        LDA #<p4CE9
+        LDA #<StubInterruptHandler
         STA $0318    ;NMI
-        LDA #>p4CE9
+        LDA #>StubInterruptHandler
         STA $0319    ;NMI
         LDA #$80
         STA $0291
         CLI 
-        JSR s4BF9
+
+        JSR DrawRainbowDivider
         RTS 
 
 a4B68   .BYTE $00
@@ -1128,9 +1132,9 @@ s4BA3
 f4BBD   .BYTE $01,$03,$05,$07,$09,$0B
 f4BC3   .BYTE $B9,$82,$7A,$B5,$7E,$76
 ;-------------------------------
-; s4BC9
+; UpdateGameIconsPanel
 ;-------------------------------
-s4BC9   
+UpdateGameIconsPanel   
         LDX #$00
 b4BCB   LDA #$0B
         STA a06
@@ -1156,15 +1160,15 @@ b4BD8   LDA f4BBD,X
 
 keyPressToSubGameMap   .BYTE $38,$3B,$08,$0B,$10,$13
 ;-------------------------------
-; s4BF9
+; DrawRainbowDivider
 ;-------------------------------
-s4BF9   
+DrawRainbowDivider   
         LDA #$27
         STA a41AF
         TAX 
 b4BFF   LDA #$3F
         STA SCREEN_RAM + $0348,X
-        LDA f4C17,X
+        LDA RainbowDividerColors,X
         STA COLOR_RAM + $0348,X
         DEX 
         BNE b4BFF
@@ -1173,13 +1177,15 @@ b4C0F   LDA #$30
         STA SCREEN_RAM + $03B6,X
         DEX 
         BNE b4C0F
-f4C17   RTS 
+        RTS 
 
+RainbowDividerColors=*-$01
         .BYTE $02,$02,$02,$02,$02,$02,$08,$08
         .BYTE $08,$08,$08,$07,$07,$07,$07,$07
         .BYTE $05,$05,$05,$05,$05,$05,$0E,$0E
         .BYTE $0E,$0E,$0E,$04,$04,$04,$04,$04
         .BYTE $06,$06,$06,$06,$06,$06
+
 a4C3E   .BYTE $40
 a4C3F   .BYTE $04
 j4C40   DEC a4C3E
@@ -1266,7 +1272,10 @@ f4CD4   .BYTE $FF,$FF,$C0,$C0,$C0,$C0,$C0,$C0
         .BYTE $EA,$EA,$EA,$4C,$02,$BA
 f4CE2   .BYTE $C0,$80,$40,$20,$10,$00
 a4CE8   .BYTE $00
-p4CE9   .BYTE $40
+
+StubInterruptHandler
+        RTI
+
 f4CEA   .BYTE $A9
 a4CEB   .BYTE $0F
 a4CEC   .BYTE $8D
@@ -1421,17 +1430,17 @@ f4E0F   .BYTE $FF,$A0,$C0,$FF,$4C,$BB,$47,$4C
         .BYTE $4C,$40,$4C,$4C,$ED,$59,$4C,$69
         .BYTE $4B,$4C,$8A,$57,$00,$01,$A9,$04
         .BYTE $85,$03,$A9,$00,$85,$02,$A2,$00
-b4E37   LDA a02
-        STA $0340,X
-        LDA a03
-        STA $0360,X
-        LDA a02
+b4E37   LDA screenLinesLoPtr
+        STA screenLinesLoPtrArray,X
+        LDA screenLinesHiPtr
+        STA screenLinesHiPtrArray,X
+        LDA screenLinesLoPtr
         CLC 
         ADC #$28
-        STA a02
-        LDA a03
+        STA screenLinesLoPtr
+        LDA screenLinesHiPtr
         ADC #$00
-        STA a03
+        STA screenLinesHiPtr
         INX 
 f4E4F   CPX #$1A
         BNE b4E37
@@ -1451,39 +1460,39 @@ b4E56   LDA #$20
 
         LDX a05
         LDY a04
-        LDA $0340,X
-        STA a02
-        LDA $0360,X
-        STA a03
+        LDA screenLinesLoPtrArray,X
+        STA screenLinesLoPtr
+        LDA screenLinesHiPtrArray,X
+        STA screenLinesHiPtr
         RTS 
 
         JSR s4183
-        LDA (p02),Y
+        LDA (screenLinesLoPtr),Y
         RTS 
 
         JSR s4183
         LDA a07
-        STA (p02),Y
-        LDA a03
+        STA (screenLinesLoPtr),Y
+        LDA screenLinesHiPtr
         PHA 
         CLC 
         ADC #$D4
-f4E8F   STA a03
+f4E8F   STA screenLinesHiPtr
         LDA a06
-        STA (p02),Y
+        STA (screenLinesLoPtr),Y
         PLA 
-        STA a03
+        STA screenLinesHiPtr
         RTS 
 
         .BYTE $00
-        JSR s4143
-        JSR s416A
-        JSR s574D
+        JSR InitializeScreenLinePtrArray
+        JSR ClearScreen
+        JSR DrawSomethingOnSecondLastLine
         LDA $D016    ;VIC Control Register 2
         AND #$F0
         STA $D016    ;VIC Control Register 2
-        JSR s4B1B
-        JSR s41EC
+        JSR InitializeVariablesInterruptsDrawRainbow
+        JSR SetUpInterrupts
         LDA #$18
         STA $D018    ;VIC Memory Control Register
         LDA #$00
@@ -2466,9 +2475,9 @@ b573B   JSR s4F77
 
 a574C   .BYTE $00
 ;-------------------------------
-; s574D
+; DrawSomethingOnSecondLastLine
 ;-------------------------------
-s574D   
+DrawSomethingOnSecondLastLine   
         LDX #$00
 b574F   LDA f5762,X
         AND #$3F
