@@ -1,3 +1,22 @@
+; This is the reverse-engineered source code for the game 'Batalyx'
+; written by Jeff Minter in 1985.
+;
+; The code in this file was created by disassembling a binary of the game released into
+; the public domain by Jeff Minter in 2019.
+;
+; The original code from which this source is derived is the copyright of Jeff Minter.
+;
+; The original home of this file is at: https://github.com/mwenge/batalyx
+;
+; To the extent to which any copyright may apply to the act of disassembling and reconstructing
+; the code from its binary, the author disclaims copyright to this source code.  In place of
+; a legal notice, here is a blessing:
+;
+;    May you do good and not evil.
+;    May you find forgiveness for yourself and forgive others.
+;    May you share freely, never taking more than you give.
+;
+; (Note: I ripped this part from the SQLite licence! :) )
 ;
 ; **** ZP FIELDS **** 
 ;
@@ -149,6 +168,34 @@ screenLinesHiPtrArray = $0360
 
 * = $0810
 
+;---------------------------------------------------------------------------------
+; Game 4: Cippy on the Run 
+; Cippy runs along a grey corridor. Wherever he walks, bands of rainbow light
+; appear. The objective is to paint all the walls with colour. There are hostile
+; spheres, however. They don't affect Cippy, but they change the colour of the
+; wall sections wherever they hit. If Cippy walks on one of the changed sections
+; then strange things happen; he may be inverted, or made to jump, or teleported,
+; or his grav changed, depending on the colour of the changed panel. Cippy fires
+; out a stream of bullets which may be used to blap the spheres. A scanner below
+; the screen shows progress. You have to paint in all the grey bits allowing the
+; spheres to claim as few bits as possible. Each complete corridor you do, you
+; get a quarter of the Completion Icon. Every two phases there are Bonus Runs,
+; with no spheres and a psychedelic Cippy. The game mechanic changes slightly on
+; higher levels. 
+; 
+; Cippy can run by pushing the stick left and right, and jump between surfaces by
+; up/down. You can also execute a jump on the surface you're on by pressing fire.
+; The bullets flow constantly and you can steer them with your motion. Watch out
+; for the black holes with the red bits in. 
+; 
+; Design Notes: I had a lot of fun with this one. It was just a case of sitting
+; down and coding and seeing what came out. I got to use my beloved grav and
+; inertia modules too, and the whole is fairly pretty. Roots are in the Q-bert
+; and painting genre I suppose, but quite a long way removed. I particularly like
+; the 'furry' noise when you jump, and the psychedelic Cippy in the bonus phase.
+; The bullets are all associated with various people on the Compunet system; I
+; asked them for a little sprite each to use in the game. 
+;----------------------------------------------------------------
 .include "cippyontherun.asm"
 
 a1DA9   .BYTE $F0,$C6,$FE,$70,$FF,$FF,$F0,$66
@@ -584,24 +631,131 @@ subGameJumpMapLoPtr   .BYTE $00,$00,$88,$10,$00,$00
 subGameJumpMapHiPtr   .BYTE $AB,$60,$42,$08,$A0,$78
 
 
+;----------------------------------------------------------------
+; Game 3: the Activation of Iridis Base 
+; 
+; You are sitting on the back of this Mutant Camel, see, riding towards Iridis
+; Base and attempting to activate it by displaying a carefully-vectored trail of
+; phosphenes. Very simple, basically. Watch the Vector Indicator. The 9 pixels
+; represent the 8 joystick directions and the FIRE button in the middle. The
+; Indicator feeds you a vector, and you must respond with your joystick as fast
+; as you can react. Your reaction time is measured and points awarded for being
+; quick. Each time you're too slow, you lose a phosphene from the trail. If you
+; lose all six you must do the sequence again. You have to do 100-step sequences;
+; for each phosphene you bring through to the end of the sequence, you get one
+;   layer of the pyramid illuminated. When all levels are done you get your
+;   completion icon and the pyramid lights up. 
+; 
+; Learn to recognize some of the pre-set sequences that crop up. Some are pure
+; random but some are stored sequences. Watch the trail of spheres; when it gets
+; close to you you'll need to press FIRE with your next vector. Actually, the
+; game can be played watching only the vector indicator, but you'll find that
+; watching the spheres helps you anticipate certain actions. 
+;
+; Design Notes: This is probably the most abstract of all the phases. I was
+; originally thinking of doing a shoot-em-up using the spheres as bullets and
+; firing them off into the distance, but by chance I was playing with the spheres
+; one day and I strung 'em all out like they are, and the trail effect was so
+; zarjaz I just wrote the rest of the game around it. It's very pretty, the same
+; kind of appeal as those kites with long tails I suppose. Very much a pure
+; reaction-time game, but quite effective nonetheless. 
+;----------------------------------------------------------------
 .include "iridisbase.asm"
 
 .include "somedata1.asm"
 
+;----------------------------------------------------------------
+;  Game 2. AMC II 
+; 
+; I'm sure this will need no introduction. Attack the dromedroids with your
+; ship's bullets. Repeated hits on the camels weaken and eventually destroy them
+; (strength being shown by the colour of each camel on the scanner). Hits on your
+; ship by camel's bullets, or by flying into the camels, reduce your shields. You
+; can get by a camel's legs if you fly low. The camels march towards the right
+; hand side of the scanner. If they reach it they are 'taken up' and an extra
+; beast is added to the number remaining. 
+; 
+; Your objective is to destroy all the dromedroids within the level, then warp to
+; the next level. You get one quarter of the completion icon following a
+; successful warp, but only if you cleared all the camels. (You can warp at any
+; time, even with loads of camels left). Thus, you must clear 4 different levels
+; to get the whole Icon. (To warp, just keep accelerating). If you run out of
+; shields, you are chucked down one level. The camel's bullets can be pretty
+; devious. Watch out for those ones which stop and start. The higher the level
+; you're on the more points you'll get for each camel. 
+;
+; Design Notes: Well, I'd often wanted to update AMC on the 64 but couldn't
+; really justify it on its own. Putting it in as a subgame seemed like the
+; perfect solution. Still a good blast after all these years... 
+;----------------------------------------------------------------
 .include "amcII.asm"
 
+;----------------------------------------------------------------
+; Game 6: Psychedelia 
+; 
+; Well I was going to put a PAUSE mode in, but this is much better. When you need
+; to, drop into SUB6 and relax. The timer stops and you can stay in the subgame
+; until you've got your head together enough to play on. The controls are a
+; subset of real PSYCHEDELIA, allowing S=symmetry change and C=cursor speed. You
+; can also use F1 and SHIFT-F1 to change fore- and background colours. 
+; 
+; Design Notes: Well it's more interesting than freezing the screen. 
+;----------------------------------------------------------------
 .include "psychedelia.asm"
 
 .include "somedata2.asm"
-
 .include "moresprites.asm"
 
 fA001   =*+$01
 JumpToLaunchSyncro
         JMP LaunchSyncro
 
+;----------------------------------------------------------------
+; Game 5: Syncro II 
+; 
+; Here you see spheres bouncing about over a grid of coloured squares. By moving
+; the joystick you can select any square you like. (The selected square is
+; bracketed by flashing grey). If you press the button and move the stick, the
+; selected square can be made to 'rotate'. All squares of the selected colour
+; assume such rotation. 
+; 
+; The objective is to make all the spheres on the grid stop dead. The spheres'
+; velocities are modified by the rotation of any square they pass over. Thus, to
+; halt a sphere, you cause it to pass over a square you've set up with a velocity
+; exactly opposite to that of the sphere. 
+; 
+; Halted spheres stay halted a finite length of time; eventually they drift, so
+; don't hang about. Once all spheres are stopped, you get a bonus and go to the
+; next level. Completing all 8 levels gives you the whole completion icon. On
+; later levels you encounter invisible squares, too. These may be used just like
+; normal ones, just that you can't see them! 
+; 
+; Design Notes: This is a development of the idea behind SYNCRO, which was
+; published in Commodore Horizons last year. They asked me to do another game, so
+; I thought I'd do a SYNCRO derivative, and include it in BATALYX as a subgame
+; having given it more levels. What I like most about it is the weird music. You
+; can play with it for ages, it's a bit like Psychedelia-with-notes. 
+;----------------------------------------------------------------
 .include "syncroII.asm"
 
+;----------------------------------------------------------------
+; Game 1: Hallucin-O-Bomblets 
+; 
+; You control a little robot droid attacking the Hallu... ok let's call 'em aliens then.
+; You fire by leaning the stick in the direction you want to fire. Thanks to Newton, your 
+; ship is thrust in the opposite direction to bullets you fire. Thus you steer your ship 
+; by carefully firing in the direction you don't want to go whilst simultaneously trying 
+; to blap the aliens with your bullets. 
+;
+; Design Notes: I'd had the idea of the ship and bullets-as-reaction-mass for
+; ages and this seemed like a good opportunity to try it. The control seems weird
+; at first but you soon get the hang. Sort of like a weird Asteroids I suppose. I
+; thought I could do some nice trad-Minter multi-wave-wacky sprites here too, and
+; the bits flying off are simple but effective. Unlimited lives here - as indeed
+; throughout the game. I wanted to take some of the frustration out of learning.
+; I do like the sonics though, the 'doomff' when you shoot one and the jangling
+; crash when you get hit. 
+;----------------------------------------------------------------
 JumpToLaunchHallucinOBomblets
         JMP LaunchHallucinOBomblets
 
