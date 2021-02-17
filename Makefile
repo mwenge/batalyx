@@ -10,7 +10,7 @@ original: clean d64_orig run_orig
 
 batalyx.prg: src/batalyx.asm
 	64tass -Wall -Wno-implied-reg --cbm-prg -o bin/bx.prg -L bin/list-co1.txt -l bin/labels.txt src/batalyx.asm
-	64tass -Wall -Wno-implied-reg --cbm-prg -o bin/titlescreen-bitmap.prg src/titlescreen-bitmap.asm
+	64tass -Wall -Wno-implied-reg --cbm-prg -o bin/titlescreen-bitmap.prg src/titlescreen-bitmap-2.asm
 	exomizer sfx sys bin/bx.prg bin/titlescreen-bitmap.prg,0xe000 -n -o bin/batalyx.prg
 	md5sum bin/bx-bench.prg bin/bx.prg
 	md5sum bin/titlescreen-bitmap-bench.prg bin/titlescreen-bitmap.prg

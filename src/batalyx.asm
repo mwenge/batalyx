@@ -32,7 +32,7 @@ fE7 = $E7
 ;
 ; **** ZP ABSOLUTE ADRESSES **** 
 ;
-a01 = $01
+RAM_ACCESS_MODE = $01
 screenLinesLoPtr = $02
 screenLinesHiPtr = $03
 currentCharXPos = $04
@@ -704,11 +704,11 @@ subGameJumpMapHiPtr   .BYTE $AB,$60,$42,$08,$A0,$78
 .include "psychedelia.asm"
 
 .include "somedata2.asm"
-.include "moresprites.asm"
 
-fA001   =*+$01
-JumpToLaunchSyncro
-        JMP LaunchSyncro
+;---------------------------------------------------------------------------------
+; Sprites for Hallucinobomblets
+;---------------------------------------------------------------------------------
+.include "moresprites.asm"
 
 ;---------------------------------------------------------------------------------
 ; Game 5: Syncro II 
@@ -736,6 +736,10 @@ JumpToLaunchSyncro
 ; having given it more levels. What I like most about it is the weird music. You
 ; can play with it for ages, it's a bit like Psychedelia-with-notes. 
 ;---------------------------------------------------------------------------------
+fA001   =*+$01
+JumpToLaunchSyncro
+        JMP LaunchSyncro
+
 .include "syncroII.asm"
 
 ;---------------------------------------------------------------------------------
@@ -1063,9 +1067,9 @@ UpdateStroboscopeDisplay
         ;Never reached
 
 ;---------------------------------------------------------------------------------
-; SwapData
+; SwapZarjazBitmapDataInOrOut
 ;---------------------------------------------------------------------------------
-SwapData   
+SwapZarjazBitmapDataInOrOut   
         SEI 
 
         ; Swap data between C800-CC00 to 0400-0800
@@ -1094,7 +1098,7 @@ bC289   LDA (tempLoPtr2),Y
         CMP #$08
         BNE bC289
 
-        ; Copy data from CC00 to 2000
+        ; Swap data between CC00-D000 and 2000-2200
         LDA #$CC
         STA tempHiPtr1
         LDA #$20
@@ -1103,10 +1107,11 @@ bC289   LDA (tempLoPtr2),Y
         STA tempLoPtr1
         STA tempLoPtr2
 
+        ; Needed to access ram at E000 and above.
         LDY #$00
-        LDA a01
+        LDA RAM_ACCESS_MODE
         AND #$FD
-        STA a01
+        STA RAM_ACCESS_MODE
 
 bC2B6   LDA (tempLoPtr2),Y
         PHA 
@@ -1122,22 +1127,25 @@ bC2B6   LDA (tempLoPtr2),Y
         LDA tempHiPtr1
         CMP #$D0
         BNE bC2CF
+
+        ; Swap data between E000-FC00 and 2400-XXXX
         LDA #$E0
 bC2CF   STA tempHiPtr1
         CMP #$FC
         BNE bC2B6
 
-        LDA a01
+        LDA RAM_ACCESS_MODE
         ORA #$02
-        STA a01
+        STA RAM_ACCESS_MODE
 
         CLI 
         RTS 
 
 ;---------------------------------------------------------------------------------
-; UpdateControlRegister
+; ToggleBitmapDisplay
 ;---------------------------------------------------------------------------------
-UpdateControlRegister   
+ToggleBitmapDisplay   
+        ; Enable the bitmap display for the zarjaz bitmap
         LDA $D011    ;VIC Control Register 1
         ORA #$20
         AND #$7F
@@ -1162,12 +1170,12 @@ bC2F4   DEC aC2E8
         LDA aC2EA
         BNE bC30D
 
-        JSR SwapData
-        JSR UpdateControlRegister
+        JSR SwapZarjazBitmapDataInOrOut
+        JSR ToggleBitmapDisplay
         INC aC2EA
         RTS 
 
-bC30D   JSR SwapData
+bC30D   JSR SwapZarjazBitmapDataInOrOut
         LDA $D011    ;VIC Control Register 1
         AND #$5F
         STA $D011    ;VIC Control Register 1
@@ -1507,4 +1515,10 @@ bC5C0   INX
 bC5D7   RTS 
 
 .include "padding.asm"
+
+;----------------------------------------------------------------
+; Data for the first part of the title screen bitmap. The rest is stored in
+; titlescreen-bitmap-2.asm which is loaded to $E000.
+;----------------------------------------------------------------
+.include "titlescreen-bitmap-1.asm"
 

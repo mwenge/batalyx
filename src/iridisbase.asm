@@ -1039,7 +1039,7 @@ s4AFC
 ;---------------------------------------------------------------------------------
 InitializeVariablesInterruptsDrawRainbow   
         LDA #$36
-        STA a01
+        STA RAM_ACCESS_MODE
         LDA #$00
         STA a54B4
         STA a5AE9

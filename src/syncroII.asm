@@ -1,3 +1,29 @@
+;---------------------------------------------------------------------------------
+; Game 5: Syncro II 
+; 
+; Here you see spheres bouncing about over a grid of coloured squares. By moving
+; the joystick you can select any square you like. (The selected square is
+; bracketed by flashing grey). If you press the button and move the stick, the
+; selected square can be made to 'rotate'. All squares of the selected colour
+; assume such rotation. 
+; 
+; The objective is to make all the spheres on the grid stop dead. The spheres'
+; velocities are modified by the rotation of any square they pass over. Thus, to
+; halt a sphere, you cause it to pass over a square you've set up with a velocity
+; exactly opposite to that of the sphere. 
+; 
+; Halted spheres stay halted a finite length of time; eventually they drift, so
+; don't hang about. Once all spheres are stopped, you get a bonus and go to the
+; next level. Completing all 8 levels gives you the whole completion icon. On
+; later levels you encounter invisible squares, too. These may be used just like
+; normal ones, just that you can't see them! 
+; 
+; Design Notes: This is a development of the idea behind SYNCRO, which was
+; published in Commodore Horizons last year. They asked me to do another game, so
+; I thought I'd do a SYNCRO derivative, and include it in BATALYX as a subgame
+; having given it more levels. What I like most about it is the weird music. You
+; can play with it for ages, it's a bit like Psychedelia-with-notes. 
+;---------------------------------------------------------------------------------
 
 aA003   .BYTE $00
 ;---------------------------------------------------------------------------------

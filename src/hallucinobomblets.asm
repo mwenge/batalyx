@@ -1,3 +1,21 @@
+;---------------------------------------------------------------------------------
+; Game 1: Hallucin-O-Bomblets 
+; 
+; You control a little robot droid attacking the Hallu... ok let's call 'em aliens then.
+; You fire by leaning the stick in the direction you want to fire. Thanks to Newton, your 
+; ship is thrust in the opposite direction to bullets you fire. Thus you steer your ship 
+; by carefully firing in the direction you don't want to go whilst simultaneously trying 
+; to blap the aliens with your bullets. 
+;
+; Design Notes: I'd had the idea of the ship and bullets-as-reaction-mass for
+; ages and this seemed like a good opportunity to try it. The control seems weird
+; at first but you soon get the hang. Sort of like a weird Asteroids I suppose. I
+; thought I could do some nice trad-Minter multi-wave-wacky sprites here too, and
+; the bits flying off are simple but effective. Unlimited lives here - as indeed
+; throughout the game. I wanted to take some of the frustration out of learning.
+; I do like the sonics though, the 'doomff' when you shoot one and the jangling
+; crash when you get hit. 
+;---------------------------------------------------------------------------------
 
 aAB03   .BYTE $00
 ;---------------------------------------------------------------------------------
