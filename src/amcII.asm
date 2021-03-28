@@ -1,9 +1,53 @@
+;---------------------------------------------------------------------------------
+;  Game 2. AMC II 
+; 
+; I'm sure this will need no introduction. Attack the dromedroids with your
+; ship's bullets. Repeated hits on the camels weaken and eventually destroy them
+; (strength being shown by the colour of each camel on the scanner). Hits on your
+; ship by camel's bullets, or by flying into the camels, reduce your shields. You
+; can get by a camel's legs if you fly low. The camels march towards the right
+; hand side of the scanner. If they reach it they are 'taken up' and an extra
+; beast is added to the number remaining. 
+; 
+; Your objective is to destroy all the dromedroids within the level, then warp to
+; the next level. You get one quarter of the completion icon following a
+; successful warp, but only if you cleared all the camels. (You can warp at any
+; time, even with loads of camels left). Thus, you must clear 4 different levels
+; to get the whole Icon. (To warp, just keep accelerating). If you run out of
+; shields, you are chucked down one level. The camel's bullets can be pretty
+; devious. Watch out for those ones which stop and start. The higher the level
+; you're on the more points you'll get for each camel. 
+;
+; Design Notes: Well, I'd often wanted to update AMC on the 64 but couldn't
+; really justify it on its own. Putting it in as a subgame seemed like the
+; perfect solution. Still a good blast after all these years... 
+;---------------------------------------------------------------------------------
+; This is the reverse-engineered source code for the game 'Batalyx'
+; written by Jeff Minter in 1985.
+;
+; The code in this file was created by disassembling a binary of the game released into
+; the public domain by Jeff Minter in 2019.
+;
+; The original code from which this source is derived is the copyright of Jeff Minter.
+;
+; The original home of this file is at: https://github.com/mwenge/batalyx
+;
+; To the extent to which any copyright may apply to the act of disassembling and reconstructing
+; the code from its binary, the author disclaims copyright to this source code.  In place of
+; a legal notice, here is a blessing:
+;
+;    May you do good and not evil.
+;    May you find forgiveness for yourself and forgive others.
+;    May you share freely, never taking more than you give.
+;
+; (Note: I ripped this part from the SQLite licence! :) )
+;
 
 a6003   .BYTE $00
 ;---------------------------------------------------------------------------------
-; s6004
+; ResetSomeDataAndClearMiddleScreen
 ;---------------------------------------------------------------------------------
-s6004   
+ResetSomeDataAndClearMiddleScreen   
         LDX #$00
 b6006   LDY f634A,X
         LDA #$70
@@ -37,8 +81,10 @@ LaunchAMCII
         LDA #$00
         STA a6F29
         STA a754E
+
         JSR s7470
         JSR s6F34
+
         LDX #$00
 b6046   LDA #$00
         STA f754F,X
@@ -60,7 +106,7 @@ b6066   JSR s7479
         ASL 
         ASL 
         STA a6ADB
-        JSR s6004
+        JSR ResetSomeDataAndClearMiddleScreen
         JSR s60E0
         JSR s616C
         JSR s6F4E
@@ -121,6 +167,7 @@ s60E0
         STA currentChar
         LDA a74D2
         STA a06
+
 b60F0   LDA #$00
         STA currentCharXPos
 b60F4   JSR WriteCurrentCharToScreen
@@ -133,6 +180,7 @@ b60F4   JSR WriteCurrentCharToScreen
         LDA currentCharYPos
         CMP #$12
         BNE b60F0
+
         LDX #$00
 b610B   LDA a74D1
         STA COLOR_RAM + $0028,X
@@ -146,6 +194,7 @@ b6119   LDA #$20
         INX 
         CPX #$28
         BNE b6119
+
         LDA #$09
         STA $D022    ;Background Color 1, Multi-Color Register 0
         LDA #$05
@@ -211,7 +260,7 @@ f6191   ADC (p61,X)
 
         LDA a7231
         STA $D021    ;Background Color 0
-        JSR s4129
+        JSR JumpToPlaySomeSounds
         JSR s4135
         JMP JumpToIncrementAndUpdateRaster
 
@@ -2501,6 +2550,7 @@ s7470
         LDX a6F29
         LDA f740C,X
         STA a7153
+
 ;---------------------------------------------------------------------------------
 ; s7479
 ;---------------------------------------------------------------------------------

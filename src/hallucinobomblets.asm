@@ -16,6 +16,25 @@
 ; I do like the sonics though, the 'doomff' when you shoot one and the jangling
 ; crash when you get hit. 
 ;---------------------------------------------------------------------------------
+; This is the reverse-engineered source code for the game 'Batalyx'
+; written by Jeff Minter in 1985.
+;
+; The code in this file was created by disassembling a binary of the game released into
+; the public domain by Jeff Minter in 2019.
+;
+; The original code from which this source is derived is the copyright of Jeff Minter.
+;
+; The original home of this file is at: https://github.com/mwenge/batalyx
+;
+; To the extent to which any copyright may apply to the act of disassembling and reconstructing
+; the code from its binary, the author disclaims copyright to this source code.  In place of
+; a legal notice, here is a blessing:
+;
+;    May you do good and not evil.
+;    May you find forgiveness for yourself and forgive others.
+;    May you share freely, never taking more than you give.
+;
+; (Note: I ripped this part from the SQLite licence! :) )
 
 aAB03   .BYTE $00
 ;---------------------------------------------------------------------------------
@@ -23,11 +42,13 @@ aAB03   .BYTE $00
 ;---------------------------------------------------------------------------------
 LaunchHallucinOBomblets
         JSR sB9E9
+
         LDA $D011    ;VIC Control Register 1
         ORA #$0B
         AND #$7B
         STA $D011    ;VIC Control Register 1
-        JSR sB6CA
+
+        JSR SwapInOutHallucinoBombletSprites
         LDA aAB03
         BNE bAB23
         LDA #$FF
@@ -35,9 +56,9 @@ LaunchHallucinOBomblets
         LDA #$00
         STA aBBA4
 bAB23   SEI 
-        JSR sAEFF
-        JSR sAB3F
-        JSR sAB61
+        JSR ResetSomeData
+        JSR ClearScreenAndInitializeSprites
+        JSR InitializeRasterJumpTableForHB
         JSR sB5B0
         CLI 
         LDA #$01
@@ -47,48 +68,57 @@ jAB36   JSR sB954
         JMP jAB36
 
 ;---------------------------------------------------------------------------------
-; sAB3F
+; ClearScreenAndInitializeSprites
 ;---------------------------------------------------------------------------------
-sAB3F   
+ClearScreenAndInitializeSprites   
         LDX #$00
         LDA $D01E    ;Sprite to Sprite Collision Detect
+
 bAB44   LDA #$20
         STA SCREEN_RAM + $0000,X
         STA SCREEN_RAM + $0100,X
         STA SCREEN_RAM + $01D0,X
         DEX 
         BNE bAB44
+
         LDA #$00
         STA $D015    ;Sprite display Enable
         STA a40D7
         STA a4142
-        JSR s6004
+        JSR ResetSomeDataAndClearMiddleScreen
         RTS 
 
 ;---------------------------------------------------------------------------------
-; sAB61
+; InitializeRasterJumpTableForHB
 ;---------------------------------------------------------------------------------
-sAB61   
+InitializeRasterJumpTableForHB   
         LDX #$00
-bAB63   LDA fAB7B,X
+bAB63   LDA hbRasterPosArray,X
         STA rasterPositionArray,X
-        LDA fAB7E,X
+        LDA hbRasterJumpTableLoPtrs,X
         STA rasterJumpTableLoPtrArray,X
-        LDA fAB80,X
+        LDA hbRasterJumpTableHiPtrs,X
         STA rasterJumpTableHiPtrArray,X
         INX 
         CPX #$02
         BNE bAB63
         RTS 
 
-fAB7B   .BYTE $E0,$FF,$FF
-fAB7E   .BYTE $82,$82
-fAB80   .BYTE $AB,$AB
+hbRasterPosArray   .BYTE $E0,$FF,$FF
+
+; Raster jump table pointing to sAB82 ($AB82) initially.
+hbRasterJumpTableLoPtrs   .BYTE $82,$82
+hbRasterJumpTableHiPtrs   .BYTE $AB,$AB
+
+;---------------------------------------------------------------------------------
+; sAB82
+;---------------------------------------------------------------------------------
+sAB82
         JSR sABBA
         JSR s412C
         JSR stroboscopeOnOff
         JSR $FF9F ;$FF9F - scan keyboard                    
-        JSR s4129
+        JSR JumpToPlaySomeSounds
         JSR sAC1B
         JSR sADEA
         JSR sB0B1
@@ -97,9 +127,9 @@ fAB80   .BYTE $AB,$AB
         LDA $D01E    ;Sprite to Sprite Collision Detect
         STA aB347
         JSR sB49D
-        JSR s4129
+        JSR JumpToPlaySomeSounds
         JSR s4135
-        JSR sB6FB
+        JSR ProcessInputOrScrollText
         JMP JumpToIncrementAndUpdateRaster
 
 aABB5   .BYTE $60
@@ -481,6 +511,7 @@ fAEB5   .BYTE $C0
 fAEB6   .BYTE $08,$D0
 fAEB8   .BYTE $F0
 fAEB9   .BYTE $60,$A0,$00
+
 bAEBC   LDA SCREEN_RAM + $03B7,Y
         STA (tempLoPtr1),Y
         INY 
@@ -518,9 +549,9 @@ bAEEF   LDA COLOR_RAM + $03A5,X
 
         .BYTE $C0,$C0,$20,$2A
 ;---------------------------------------------------------------------------------
-; sAEFF
+; ResetSomeData
 ;---------------------------------------------------------------------------------
-sAEFF   
+ResetSomeData   
         LDX #$5C
         LDA aAB03
         BNE bAF0E
@@ -1109,6 +1140,7 @@ sB49D
         LDX #$00
 bB49F   LDA fB499,X
         BEQ bB4A7
+
         JSR sB4B6
 bB4A7   INX 
         CPX #$04
@@ -1403,17 +1435,18 @@ fB6B2   .BYTE $01,$8F,$0F,$0A,$01,$0E,$81,$FF
         .BYTE $0C,$00,$01
 pB6C5   .BYTE $00,$01,$01,$00,$FF
 ;---------------------------------------------------------------------------------
-; sB6CA
+; SwapInOutHallucinoBombletSprites
 ;---------------------------------------------------------------------------------
-sB6CA   
-        LDA #>p9A40
+SwapInOutHallucinoBombletSprites   
+        LDA #>hbSprites
         STA tempHiPtr1
-        LDA #<p9A40
+        LDA #<hbSprites
         STA tempLoPtr1
-        LDA #>p3000
+        LDA #>mainSprites
         STA tempHiPtr2
-        LDA #<p3000
+        LDA #<mainSprites
         STA tempLoPtr2
+
         LDY #$00
 bB6DC   LDA (tempLoPtr1),Y
         PHA 
@@ -1430,17 +1463,18 @@ bB6EC   INC tempLoPtr2
 bB6F2   LDA tempHiPtr1
         CMP #$A0
         BNE bB6DC
+
         RTS 
 
 aB6F9   .BYTE $00
 aB6FA   .BYTE $00
 ;---------------------------------------------------------------------------------
-; sB6FB
+; ProcessInputOrScrollText
 ;---------------------------------------------------------------------------------
-sB6FB   
-        LDA #<pB753
+ProcessInputOrScrollText   
+        LDA #<scrollingText
         STA tempLoPtr1
-        LDA #>pB753
+        LDA #>scrollingText
         STA tempHiPtr1
         LDA currentPressedKey
         CMP #$40
@@ -1484,19 +1518,19 @@ bB734   TYA
         BNE bB734
         RTS 
 
-pB753   .TEXT " THE BONEHEADS                   THE I I"
-        .TEXT "N THE PYRAMID            WHAT A LOVELY B"
-        .TEXT "EASTIE           SAY HI TO THE AARDVARK!"
-        .TEXT "!        DIO  D I O    D    I    O      "
-        .TEXT " NEVER WITHOUT A BEARDED PACMAN  AN ELK "
-        .TEXT "                         MY COMPUNET PHO"
-        .TEXT "NE BILL          THE LARGE ROLL-UP      "
-        .TEXT "         THOSE 3.5 INCH FLOPPY DISKS    "
-        .TEXT " A HORNY BEASTIE                 PROGRAM"
-        .TEXT "MERS LIVE ON BEER       EVERYBODYS FAVOU"
-        .TEXT "RITE BEASTIE     CIPPY IN A HURRY IS HE "
-        .TEXT "         A PASSAGE TO BANGKOK           "
-        .TEXT " WE ALL LOVE COUGARS GRAPHIC    "
+scrollingText .TEXT " THE BONEHEADS                   THE I I"
+              .TEXT "N THE PYRAMID            WHAT A LOVELY B"
+              .TEXT "EASTIE           SAY HI TO THE AARDVARK!"
+              .TEXT "!        DIO  D I O    D    I    O      "
+              .TEXT " NEVER WITHOUT A BEARDED PACMAN  AN ELK "
+              .TEXT "                         MY COMPUNET PHO"
+              .TEXT "NE BILL          THE LARGE ROLL-UP      "
+              .TEXT "         THOSE 3.5 INCH FLOPPY DISKS    "
+              .TEXT " A HORNY BEASTIE                 PROGRAM"
+              .TEXT "MERS LIVE ON BEER       EVERYBODYS FAVOU"
+              .TEXT "RITE BEASTIE     CIPPY IN A HURRY IS HE "
+              .TEXT "         A PASSAGE TO BANGKOK           "
+              .TEXT " WE ALL LOVE COUGARS GRAPHIC    "
 aB953   .TEXT $00
 ;---------------------------------------------------------------------------------
 ; sB954
@@ -1508,7 +1542,11 @@ sB954
 
 bB95A   JMP j413E
 
-jB95D   LDX #$28
+;---------------------------------------------------------------------------------
+; jB95D   
+;---------------------------------------------------------------------------------
+jB95D   
+        LDX #$28
         LDA #$20
 bB961   STA SCREEN_RAM + $03BF,X
         DEX 
@@ -1516,7 +1554,11 @@ bB961   STA SCREEN_RAM + $03BF,X
         RTS 
 
 fB968   .BYTE $3B,$08,$0B,$10,$13,$03
-jB96E   LDA currentPressedKey
+;---------------------------------------------------------------------------------
+; jB96E   
+;---------------------------------------------------------------------------------
+jB96E   
+        LDA currentPressedKey
         PHA 
         CMP #$40
         BNE bB977
@@ -1533,7 +1575,7 @@ bB979   CMP fB968,X
         RTS 
 
 bB985   SEI 
-        JSR sB6CA
+        JSR SwapInOutHallucinoBombletSprites
         JSR jB95D
         PLA 
         JMP JumpToCheckSubGameSelection
@@ -1596,17 +1638,23 @@ bB9EB   LDY fB147,X
         BNE bB9EB
         RTS 
 
-jBA02   SEI 
+;---------------------------------------------------------------------------------
+; HB_ResetRasterJumpTable   
+;---------------------------------------------------------------------------------
+HB_ResetRasterJumpTable   
+        SEI 
         LDA #<pB9CB
         STA a1B
         LDA #>pB9CB
         STA a1C
         LDA #$01
         STA a4141
-        JSR sAB3F
+        JSR ClearScreenAndInitializeSprites
         LDA $D016    ;VIC Control Register 2
         AND #$E8
         STA $D016    ;VIC Control Register 2
+
+        ; Jump address gets reset to HB_DefaultRasterJump ($BA3C)
         LDX #$00
 bBA1D   LDA fBA35,X
         STA rasterPositionArray,X
@@ -1619,10 +1667,21 @@ bBA1D   LDA fBA35,X
         BNE bBA1D
         JMP jBA48
 
-fBA35   .BYTE $F0,$FF,$FF,$FF,$FF,$FF,$FF,$20
-        .BYTE $29,$41,$20,$9D,$B4,$20,$2F,$41
-        .BYTE $4C,$32,$41
-jBA48   LDX #$00
+fBA35   .BYTE $F0,$FF,$FF,$FF,$FF,$FF,$FF
+;----------------------------------------------------------------
+; HB_DefaultRasterJump
+;----------------------------------------------------------------
+HB_DefaultRasterJump
+        JSR JumpToPlaySomeSounds
+        JSR sB49D
+        JSR stroboscopeOnOff
+        JMP JumpToIncrementAndUpdateRaster
+
+;---------------------------------------------------------------------------------
+; jBA48   
+;---------------------------------------------------------------------------------
+jBA48   
+        LDX #$00
         CLI 
         LDA #$20
 bBA4D   STA SCREEN_RAM + $0000,X
@@ -1666,7 +1725,7 @@ aBA9F   .BYTE $00
 ; sBAA0
 ;---------------------------------------------------------------------------------
 sBAA0   
-        JSR sAB3F
+        JSR ClearScreenAndInitializeSprites
         LDA #$00
         STA aBA9F
 bBAA8   LDA #$00
@@ -1696,7 +1755,7 @@ bBAC5   STA a06
         LDA aBA9F
         CMP #$14
         BNE bBAA8
-        JMP jBB17
+        JMP DrawGameOverScreen
 
 ;---------------------------------------------------------------------------------
 ; sBAEB
@@ -1728,7 +1787,11 @@ sBB02
 bBB15   RTS 
 
 aBB16   .BYTE $00
-jBB17   LDA #$20
+;---------------------------------------------------------------------------------
+; DrawGameOverScreen
+;---------------------------------------------------------------------------------
+DrawGameOverScreen
+        LDA #$20
         STA currentChar
         LDA #>p090A
         STA currentCharYPos
@@ -1765,6 +1828,7 @@ bBB44   LDA fBB5C,X
         JMP jBB6C
 
 fBB5C   .TEXT "JUEGO TERMINADO!"
+
 jBB6C   LDA #$10
         STA aBA9F
 bBB71   LDA #<pB6C5
@@ -1808,12 +1872,16 @@ sBBA5
         STA aB9AE
         RTS 
 
-jBBAE   SEI 
+;---------------------------------------------------------------------------------
+; jBBAE   
+;---------------------------------------------------------------------------------
+jBBAE   
+        SEI 
         JSR jB95D
-        JSR sB6CA
+        JSR SwapInOutHallucinoBombletSprites
         LDX #$F8
         TXS 
-        JMP jBA02
+        JMP HB_ResetRasterJumpTable
 
         STA a09AE
         JSR s0C7B

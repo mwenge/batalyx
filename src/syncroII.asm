@@ -1270,7 +1270,7 @@ sAA8D
         BEQ bAA98
         LDX #$F8
         TXS 
-        JMP jBA02
+        JMP HB_ResetRasterJumpTable
 
 bAA98   LDA currentPressedKey
         CMP #$40

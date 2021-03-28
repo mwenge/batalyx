@@ -6,7 +6,7 @@ LaunchIridisBase
         LDA $D011    ;VIC Control Register 1
         AND #$6F
         STA $D011    ;VIC Control Register 1
-        JSR s6004
+        JSR ResetSomeDataAndClearMiddleScreen
         LDA #$00
         STA $D020    ;Border Color
         STA $D021    ;Background Color 0
@@ -668,7 +668,11 @@ f47AA   .BYTE $00
 f47AB   .BYTE $00,$00,$00,$00,$00,$00,$00,$00
         .BYTE $00,$00,$00,$00,$00,$00,$00,$00
 
-j47BB   LDY #$00
+;---------------------------------------------------------------------------------
+; PlaySomeSounds   
+;---------------------------------------------------------------------------------
+PlaySomeSounds   
+        LDY #$00
 b47BD   LDA f4008,Y
         BNE b47CC
 b47C2   TYA 
@@ -1084,7 +1088,7 @@ CheckSubGameSelection
         BEQ b4B74
         LDX #$F8
         TXS 
-        JMP jBA02
+        JMP HB_ResetRasterJumpTable
 
 b4B74   LDA currentPressedKey
         CMP #$40
@@ -1596,7 +1600,7 @@ b4F94   DEX
         PLA 
         STA $D020    ;Border Color
         JSR s5721
-        JSR j47BB
+        JSR PlaySomeSounds
         JSR $FF9F ;$FF9F - scan keyboard                    
         JSR s49FD
         JMP IncrementAndUpdateRaster
@@ -2114,7 +2118,11 @@ a53E4   .BYTE $D0,$0E,$0D,$0E,$0D,$0B,$07,$0B
         .BYTE $0E,$0A,$0F,$09,$05,$06,$0A,$0B
         .BYTE $0E,$0B,$0E,$07,$0D,$0B,$0F,$07
         .BYTE $0F,$0B,$0F,$0E,$0F,$0D,$0F
-j542B   LDY a4141
+;----------------------------------------------------------------
+; j542B
+;----------------------------------------------------------------
+j542B
+        LDY a4141
         BNE b5431
 b5430   RTS 
 
@@ -2500,7 +2508,11 @@ f5762   .BYTE $A0,$A0,$A0,$A0,$A0,$A0,$A0,$A0
         .BYTE $A0,$A0,$A0,$A0,$A0,$A0,$A0,$A7
         .BYTE $D3,$C3,$CF,$D2,$C5,$A7,$A0,$B0
         .BYTE $B0,$B0,$B0,$B0,$B0,$B0,$B0,$A0
-j578A   TXA 
+;---------------------------------------------------------------------------------
+; j578A   
+;---------------------------------------------------------------------------------
+j578A   
+        TXA 
         PHA 
         TYA 
         PHA 

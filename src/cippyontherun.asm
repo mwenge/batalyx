@@ -65,7 +65,7 @@ b0876   LDA #$7E
         STA $D015    ;Sprite display Enable
         STA a40D7
         STA a4142
-        JSR s6004
+        JSR ResetSomeDataAndClearMiddleScreen
         RTS 
 
 ;---------------------------------------------------------------------------------
@@ -116,7 +116,7 @@ s08C9
         AND #$F0
         ORA a09FD
         STA $D016    ;VIC Control Register 2
-        JSR s4129
+        JSR JumpToPlaySomeSounds
         JSR $FF9F ;$FF9F - scan keyboard                    
         JSR s0A58
 p090A   =*+$02
@@ -141,7 +141,7 @@ p090A   =*+$02
         JSR s0E34
         JSR s120F
         JSR stroboscopeOnOff
-        JSR s4129
+        JSR JumpToPlaySomeSounds
         JMP JumpToIncrementAndUpdateRaster
 
 a0949   .BYTE $00

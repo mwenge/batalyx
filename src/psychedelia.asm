@@ -72,7 +72,7 @@ b783F   JSR WriteCurrentCharToScreen
         STA $D404    ;Voice 1: Control Register
         STA $D40B    ;Voice 2: Control Register
         STA $D412    ;Voice 3: Control Register
-        JSR s6004
+        JSR ResetSomeDataAndClearMiddleScreen
         LDX #$00
 b7891   LDA #$42
         STA SCREEN_RAM + $0140,X

@@ -366,10 +366,10 @@ rasterJumpTableHiPtrArray .BYTE $C0,$C0
 rasterPositionArray       .BYTE $E0,$FF,$C0,$FF,$A0,$C0,$FF
 
 ;---------------------------------------------------------------------------------
-; s4129
+; JumpToPlaySomeSounds
 ;---------------------------------------------------------------------------------
-s4129   
-        JMP j47BB
+JumpToPlaySomeSounds   
+        JMP PlaySomeSounds
 
 ;---------------------------------------------------------------------------------
 ; s412C
@@ -407,7 +407,11 @@ s4138
 JumpToCheckSubGameSelection   
         JMP CheckSubGameSelection
 
-j413E   JMP j578A
+;---------------------------------------------------------------------------------
+; j413E   
+;---------------------------------------------------------------------------------
+j413E   
+        JMP j578A
 
 a4141   .BYTE $00
 a4142   .BYTE $01
@@ -576,14 +580,17 @@ TitleScreenInterruptHandler
         AND #$01
         BNE b4237
         JMP $EA31
+        ; Returns
 
-        ;Check for keyboard input
+        ; After a delay calculated from the IRQ switch to the Zarjas poster
+        ; and back again.
 b4237   LDX currentRasterArrayIndex
         LDA rasterJumpTableLoPtrArray,X
         STA a08
         LDA rasterJumpTableHiPtrArray,X
         STA a09
         JMP ($0008)
+        ;Returns
 
 ;---------------------------------------------------------------------------------
 ; IncrementAndUpdateRaster
@@ -598,6 +605,10 @@ IncrementAndUpdateRaster
         PLA 
         RTI 
 
+;----------------------------------------------------------------
+; s4251
+;----------------------------------------------------------------
+s4251
         LDX currentRasterArrayIndex
         LDA f40DA,X
         STA $D020    ;Border Color
@@ -708,7 +719,7 @@ subGameJumpMapHiPtr   .BYTE $AB,$60,$42,$08,$A0,$78
 ;---------------------------------------------------------------------------------
 ; Sprites for Hallucinobomblets
 ;---------------------------------------------------------------------------------
-.include "moresprites.asm"
+.include "hallucinobomblet_sprites.asm"
 
 ;---------------------------------------------------------------------------------
 ; Game 5: Syncro II 
@@ -773,11 +784,13 @@ TitleScreenLoop
 
 selectedLevel   .BYTE $00
 
-jC004   LDA $D011    ;VIC Control Register 1
+jC004   
+        LDA $D011    ;VIC Control Register 1
         ORA #$0B
         AND #$7B
         STA $D011    ;VIC Control Register 1
-jC00E   SEI 
+TS_Loop1   
+        SEI 
         LDA #$00
         STA aC2EA
         JSR AnimateScreenDissolve
@@ -785,15 +798,17 @@ jC00E   SEI
         JSR ClearTopOfScreen
         CLI 
         JSR DrawTitleScreen
-jC021   LDA aC2EA
+
+TS_Loop2   
+        LDA aC2EA
         CMP #$02
         BNE bC02E
         LDX #$F8
         TXS 
-        JMP jC00E
+        JMP TS_Loop1
 
 bC02E   JSR CheckTitleScreenInput
-        JMP jC021
+        JMP TS_Loop2
 
 ;---------------------------------------------------------------------------------
 ; InitializeRasterJumpTableForTitleScreen
@@ -812,8 +827,18 @@ bC036   LDA titleScreenRasterPosArray,X
         JMP UpdateHighestScoreForCurrentLevelIfRequired
 
 titleScreenRasterPosArray   .BYTE $E0,$FF,$FF
-titleScreenRasterJumpTableLoPtrs   .BYTE $55,$55,$20
-        .BYTE $9F,$FF,$20,$EB,$C2,$4C,$32,$41
+
+; Jump table pointing initially to SwitchScreen ($C055)
+titleScreenRasterJumpTableLoPtrs   .BYTE $55,$55
+
+;----------------------------------------------------------------
+; SwitchScreen
+;----------------------------------------------------------------
+SwitchScreen
+        JSR $FF9F ;- scan keyboard                    
+        JSR SwitchBetweenTitleScreenAndZarjazPoster
+        JMP JumpToIncrementAndUpdateRaster
+
 ;---------------------------------------------------------------------------------
 ; AnimateScreenDissolve
 ;---------------------------------------------------------------------------------
@@ -1157,7 +1182,9 @@ aC2E9   .BYTE $0E
 aC2EA   .BYTE $00
 
 ;---------------------------------------------------------------------------------
+; SwitchBetweenTitleScreenAndZarjazPoster
 ;---------------------------------------------------------------------------------
+SwitchBetweenTitleScreenAndZarjazPoster
         JSR sC503
         DEC aC2E9
         BEQ bC2F4
@@ -1208,7 +1235,7 @@ bC327   LDA #$22
         LDA $D016    ;VIC Control Register 2
         AND #$EF
         STA $D016    ;VIC Control Register 2
-        JMP s6004
+        JMP ResetSomeDataAndClearMiddleScreen
 
 ;---------------------------------------------------------------------------------
 ; GetHighestScoreForCurrentSelectedLevel
@@ -1413,9 +1440,11 @@ sC503
         LDA aC500
         CMP #$00
         BNE bC567
+
         LDA #$00
         STA $D015    ;Sprite display Enable
         LDA $DC00    ;CIA1: Data Port Register A
+
         AND #$10
         BEQ bC51D
         LDA #$00
@@ -1484,6 +1513,9 @@ fC591   =*+$02
         DEC aC500
         RTS 
 
+;----------------------------------------------------------------
+;
+;----------------------------------------------------------------
 aC596   BRK #$C5
         CPX #$EA
         .BYTE $EF,$F0,$F5 ;ISC $F5F0
