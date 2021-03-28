@@ -1,5 +1,5 @@
-f = open("../demos/syncro/src/compressed-sprites.asm", 'r')
-o = open("../demos/syncro/src/decompressed-sprite.asm", 'w')
+f = open("../demos/syncro2/src/compressed-sprites.asm", 'r')
+o = open("../demos/syncro2/src/decompressed-sprite.asm", 'w')
 
 bytes = []
 labels = {}

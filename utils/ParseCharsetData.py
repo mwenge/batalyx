@@ -1,5 +1,5 @@
-f = open("../src/compressed-charset.asm", 'r')
-o = open("../src/decompressed-charset.asm", 'w')
+f = open("../demos/syncro2/src/compressed-charset.asm", 'r')
+o = open("../demos/syncro2/src/decompressed-charset.asm", 'w')
 
 bytes = []
 labels = {}
