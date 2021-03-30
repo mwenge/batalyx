@@ -21,11 +21,8 @@ Labelling the game logic is still in progress.
 [vice]: http://vice-emu.sourceforge.net/
 [https://gridrunner.xyz]: https://mwenge.github.io/gridrunner.xyz
 [commented source code]:https://github.com/mwenge/batalyx/blob/master/src/
-[DNA]:https://github.com/mwenge/batalyx/blob/master/demos/dna
-[Torus]:https://github.com/mwenge/batalyx/blob/master/demos/torus
-[Torus2]:https://github.com/mwenge/batalyx/blob/master/demos/torus2
-[Iridis Spaceship]:https://github.com/mwenge/batalyx/blob/master/demos/iridis_spaceship
-[Made in France]:https://github.com/mwenge/batalyx/blob/master/demos/mif
+[Syncro]:https://github.com/mwenge/batalyx/blob/master/demos/syncro
+[Syncro II]:https://github.com/mwenge/batalyx/blob/master/demos/syncro2
 [Exomizer]:https://bitbucket.org/magli143/exomizer/wiki/Home
 
 To compile and run it do:
@@ -40,3 +37,9 @@ To just compile the game and get a binary (`batalyx.prg`) do:
 ```sh
 $ make batalyx.prg
 ```
+
+## Batalyx's Side Projects
+During the development of Batalyx Jeff Minter released a number of demos to friends on Compunet. These are collected in the [demos folder](https://github.com/mwenge/batalyx/tree/master/demos). They are:
+
+* [Syncro], a demo by Jeff Minter demonstrating an early concept for the Syncro subgame.
+* [Syncro II], another demo by Jeff Minter containing the final Syncro II mini game.
