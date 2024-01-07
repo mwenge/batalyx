@@ -41,7 +41,7 @@ aAB03   .BYTE $00
 ; LaunchHallucinOBomblets
 ;---------------------------------------------------------------------------------
 LaunchHallucinOBomblets
-        JSR sB9E9
+        JSR UpdateSomeData
 
         LDA $D011    ;VIC Control Register 1
         ORA #$0B
@@ -106,14 +106,14 @@ bAB63   LDA hbRasterPosArray,X
 
 hbRasterPosArray   .BYTE $E0,$FF,$FF
 
-; Raster jump table pointing to sAB82 ($AB82) initially.
-hbRasterJumpTableLoPtrs   .BYTE $82,$82
-hbRasterJumpTableHiPtrs   .BYTE $AB,$AB
+; Raster jump table pointing to MainGameRoutineRunAtRaster ($AB82) initially.
+hbRasterJumpTableLoPtrs   .BYTE <MainGameRoutineRunAtRaster,<MainGameRoutineRunAtRaster
+hbRasterJumpTableHiPtrs   .BYTE >MainGameRoutineRunAtRaster,>MainGameRoutineRunAtRaster
 
 ;---------------------------------------------------------------------------------
-; sAB82
+; MainGameRoutineRunAtRaster
 ;---------------------------------------------------------------------------------
-sAB82
+MainGameRoutineRunAtRaster
         JSR sABBA
         JSR s412C
         JSR stroboscopeOnOff
@@ -1620,9 +1620,9 @@ pB9CB   .BYTE $00,$00,$02,$02,$00,$00,$08,$08
         .BYTE $00,$00,$0E,$0E,$00,$00,$04,$04
         .BYTE $00,$00,$06,$06,$00,$FF
 ;---------------------------------------------------------------------------------
-; sB9E9
+; UpdateSomeData
 ;---------------------------------------------------------------------------------
-sB9E9   
+UpdateSomeData   
         LDX #$00
 bB9EB   LDY fB147,X
         TXA 

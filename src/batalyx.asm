@@ -780,11 +780,11 @@ JumpToLaunchHallucinOBomblets
 ; TitleScreenLoop
 ;---------------------------------------------------------------------------------
 TitleScreenLoop
-        JMP jC004
+        JMP TitleScreenLoopImpl
 
 selectedLevel   .BYTE $00
 
-jC004   
+TitleScreenLoopImpl   
         LDA $D011    ;VIC Control Register 1
         ORA #$0B
         AND #$7B
@@ -1185,7 +1185,7 @@ aC2EA   .BYTE $00
 ; SwitchBetweenTitleScreenAndZarjazPoster
 ;---------------------------------------------------------------------------------
 SwitchBetweenTitleScreenAndZarjazPoster
-        JSR sC503
+        JSR DrawStroboscopeSprites
         DEC aC2E9
         BEQ bC2F4
 bC2F3   RTS 
@@ -1434,9 +1434,9 @@ aC500   .BYTE $00
 aC501   .BYTE $00
 aC502   .BYTE $5C
 ;---------------------------------------------------------------------------------
-; sC503
+; DrawStroboscopeSprites
 ;---------------------------------------------------------------------------------
-sC503   
+DrawStroboscopeSprites   
         LDA aC500
         CMP #$00
         BNE bC567
