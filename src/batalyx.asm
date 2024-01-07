@@ -152,10 +152,10 @@ a00D9 = $00D9
 p0008 = $0008
 p00C1 = $00C1
 
-SCREEN_RAM = $0400
-COLOR_RAM = $D800
 screenLinesLoPtrArray = $0340
 screenLinesHiPtrArray = $0360
+
+.include "constants.asm"
 
 * = $0801
 ;--------------------------------------------------------------------------------------------------
@@ -714,6 +714,7 @@ subGameJumpMapHiPtr   .BYTE $AB,$60,$42,$08,$A0,$78
 ;---------------------------------------------------------------------------------
 .include "psychedelia.asm"
 
+.include "somekindofio.asm"
 .include "somedata2.asm"
 
 ;---------------------------------------------------------------------------------
